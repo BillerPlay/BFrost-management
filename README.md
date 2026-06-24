@@ -1,5 +1,5 @@
 # ⚔️ BFrost - Management app
-**🔗 Live site:** https://your-app.vercel.app
+**🔗 Live site:** https://b-frost-management.vercel.app
 
 ![quest log / in battle / cleared columns of manga-styled task cards](https://i.imgur.com/Fhk7h74.png)
 
@@ -40,20 +40,3 @@ With no env keys it runs in **local save** mode (localStorage). To use the real 
    ```
 
 5. Restart `npm run dev`. The tag in the header flips to **SAVING TO SUPABASE**.
-
-## Deploy to Vercel
-
-1. Push this repo to GitHub.
-2. Import it at [vercel.com/new](https://vercel.com/new).
-3. Add the two `NEXT_PUBLIC_SUPABASE_*` environment variables.
-4. Deploy. Paste the resulting URL at the top of this README.
-
-> The board is public by design (no login) so your teacher can open it directly. The Supabase policies in `schema.sql` allow anonymous read/write for that reason — fine for a class project, not for production data.
-
-## Make it yours
-
-Edit the party roster (names + emoji avatars) in [`lib/types.ts`](lib/types.ts) → `PARTY`.
-
-## Team
-
-_List your final-project group members here._
