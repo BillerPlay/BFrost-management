@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Task, Status, NewTask, COLUMNS } from "@/lib/types";
-import { isSupabaseConfigured } from "@/lib/supabase";
+
 import { fetchTasks, addTask, moveTask, removeTask } from "@/lib/db";
 import TaskCard from "./TaskCard";
 import QuestForm from "./QuestForm";
@@ -107,9 +107,7 @@ export default function Board() {
         </div>
 
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-          <span className={`status-tag ${isSupabaseConfigured ? "live" : "local"}`}>
-            {isSupabaseConfigured ? "● SAVING TO SUPABASE" : "● LOCAL SAVE"}
-          </span>
+          <span className="status-tag live">● SAVING TO SUPABASE</span>
           <button className="new-quest" onClick={() => setFormOpen(true)}>
             + New quest
           </button>
