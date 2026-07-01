@@ -22,3 +22,10 @@ create policy "public read"   on public.tasks for select using (true);
 create policy "public insert" on public.tasks for insert with check (true);
 create policy "public update" on public.tasks for update using (true);
 create policy "public delete" on public.tasks for delete using (true);
+
+-- Realtime: broadcast inserts/updates/deletes to every connected board so
+-- moving a quest on one screen refreshes it live on everyone else's screen.
+-- REPLICA IDENTITY FULL ensures deletes/updates carry the full old row
+-- (needed so every client can reliably match the removed/changed task by id).
+alter table public.tasks replica identity full;
+alter publication supabase_realtime add table public.tasks;

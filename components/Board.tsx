@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Task, Status, NewTask, COLUMNS } from "@/lib/types";
 
 import { fetchTasks, addTask, moveTask, removeTask } from "@/lib/db";
+import { supabase } from "@/lib/supabase";
 import TaskCard from "./TaskCard";
 import QuestForm from "./QuestForm";
 import Mascot from "./Mascot";
@@ -21,6 +22,58 @@ export default function Board() {
       .then(setTasks)
       .catch((e) => console.error(e))
       .finally(() => setLoading(false));
+  }, []);
+
+  // Live sync: whenever anyone (this tab or another party member) adds,
+  // moves, or deletes a quest, Supabase Realtime pushes the change here
+  // so every open board updates without a manual refresh.
+  useEffect(() => {
+    const channel = supabase
+      .channel("tasks-board")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "tasks" },
+        (payload) => {
+          if (payload.eventType === "INSERT") {
+            const incoming = payload.new as Task;
+            setTasks((current) =>
+              current.some((t) => t.id === incoming.id)
+                ? current
+                : [...current, incoming]
+            );
+          } else if (payload.eventType === "UPDATE") {
+            const incoming = payload.new as Task;
+            setTasks((current) => {
+              const existing = current.find((t) => t.id === incoming.id);
+              // Someone else cleared a quest — let them see the same cheer.
+              if (existing && existing.status !== "done" && incoming.status === "done") {
+                setCheerKey((k) => k + 1);
+                setVictories((v) => new Set(v).add(incoming.id));
+                setTimeout(() => {
+                  setVictories((v) => {
+                    const n = new Set(v);
+                    n.delete(incoming.id);
+                    return n;
+                  });
+                }, 750);
+              }
+              return existing
+                ? current.map((t) => (t.id === incoming.id ? incoming : t))
+                : [...current, incoming];
+            });
+          } else if (payload.eventType === "DELETE") {
+            const removedId = (payload.old as Partial<Task>).id;
+            if (removedId) {
+              setTasks((current) => current.filter((t) => t.id !== removedId));
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   async function handleAdd(input: NewTask) {
@@ -107,7 +160,7 @@ export default function Board() {
         </div>
 
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-          <span className="status-tag live">● SAVING TO SUPABASE</span>
+          <span className="status-tag live">● LIVE — SYNCED FOR THE PARTY</span>
           <button className="new-quest" onClick={() => setFormOpen(true)}>
             + New quest
           </button>
